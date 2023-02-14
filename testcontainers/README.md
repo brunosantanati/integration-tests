@@ -11,3 +11,10 @@ You also can use the commands bellow to list containers for the given docker com
 
 Before running the integration tests log into the Docker Hub:  
 <code>docker login</code>
+
+You can look into the containerized DB like this:  
+```
+docker exec -it postgresdb /bin/bash
+psql -U postgres -h localhost book_db
+book_db=# select * from book;
+```

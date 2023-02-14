@@ -9,5 +9,5 @@ You also can use the commands bellow to list containers for the given docker com
 <code>docker-compose ps</code>  
 <code>docker-compose down</code>
 
-Before running the integration tests log into the Docker Hub:
+Before running the integration tests log into the Docker Hub:  
 <code>docker login</code>

@@ -13,11 +13,11 @@ import java.util.List;
 
 @Service
 public
-class PhotoServiceClient {
+class PhotoService {
   private final String baseUrl;
   private final RestTemplate restTemplate;
 
-  PhotoServiceClient(@Value("${photos.api.base-url}") String baseUrl, RestTemplateBuilder builder) {
+  PhotoService(@Value("${photos.api.base-url}") String baseUrl, RestTemplateBuilder builder) {
     this.baseUrl = baseUrl;
     this.restTemplate = builder.build();
   }

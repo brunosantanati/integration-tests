@@ -30,10 +30,19 @@
 
 		<dependency>
 			<groupId>org.wiremock</groupId>
-			<artifactId>wiremock</artifactId>
+			<artifactId>wiremock-standalone</artifactId>
 			<version>3.3.1</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!--
+		This dependency causes error: https://github.com/wiremock/wiremock/issues/2395
+		<dependency>
+			<groupId>org.wiremock</groupId>
+			<artifactId>wiremock</artifactId>
+			<version>3.3.1</version>
+			<scope>test</scope>
+		</dependency>-->
 
 		<dependency>
 			<groupId>io.rest-assured</groupId>

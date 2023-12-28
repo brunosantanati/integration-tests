@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class IntegrationTest {
 
     private static WireMockServer wireMockServerForExternal1;
@@ -412,8 +412,11 @@ public class IntegrationTest {
                 .when()
                 .get("http://localhost:8080/albums/1/bible/john/3/16")
                 .then()
+                .log().all()
                 .statusCode(200)
-                .body("albumId", is(1));
+                .body("album.albumId", is(1))
+                .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
+                .body("bible.reference", equalTo("John 3:16"));
     }
 
 }

@@ -16,6 +16,9 @@ import static org.hamcrest.Matchers.is;
 //https://wiremock.org/docs/multi-domain-mocking/
 //https://nikhils-devops.medium.com/keytool-generate-cacert-server-cert-from-url-and-port-ssl-from-aws-acm-fcf722fea8fe
 
+//Link to solve the problem: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+//https://medium.com/expedia-group-tech/how-to-import-public-certificates-into-javas-truststore-from-a-browser-a35e49a806dc
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class IntegrationTest {
 
@@ -23,6 +26,9 @@ public class IntegrationTest {
 
     @BeforeAll
     public static void setUp() {
+
+        //System.setProperty("javax.net.ssl.trustStore", "/home/bruno/.jdks/corretto-17.0.5/lib/security/cacert");
+        //System.setProperty("javax.net.ssl.trustStorePassword", "changeme");
 
         String body1 = "[\n" +
                 "  {\n" +

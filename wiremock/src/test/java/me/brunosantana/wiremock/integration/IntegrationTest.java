@@ -2,20 +2,24 @@ package me.brunosantana.wiremock.integration;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.JvmProxyConfigurer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+//https://wiremock.org/docs/multi-domain-mocking/
+//https://nikhils-devops.medium.com/keytool-generate-cacert-server-cert-from-url-and-port-ssl-from-aws-acm-fcf722fea8fe
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class IntegrationTest {
 
-    private static WireMockServer wireMockServerForExternal1;
-    private static WireMockServer wireMockServerForExternal2;
+    private static WireMockServer wireMockServer;
 
     @BeforeAll
     public static void setUp() {
@@ -24,7 +28,7 @@ public class IntegrationTest {
                 "  {\n" +
                 "    \"albumId\": 1,\n" +
                 "    \"id\": 1,\n" +
-                "    \"title\": \"accusamus beatae ad facilis cum similique qui sunt\",\n" +
+                "    \"title\": \"accusamus beatae ad facilis cum similique qui suntt\",\n" +
                 "    \"url\": \"https://via.placeholder.com/600/92c952\",\n" +
                 "    \"thumbnailUrl\": \"https://via.placeholder.com/150/92c952\"\n" +
                 "  },\n" +
@@ -375,24 +379,23 @@ public class IntegrationTest {
 
         String body2 = "{\"reference\":\"John 3:16\",\"verses\":[{\"book_id\":\"JHN\",\"book_name\":\"John\",\"chapter\":3,\"verse\":16,\"text\":\"\\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\\n\\n\"}],\"text\":\"\\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\\n\\n\",\"translation_id\":\"web\",\"translation_name\":\"World English Bible\",\"translation_note\":\"Public Domain\"}";
 
-        // Start WireMock servers on specific ports
-        wireMockServerForExternal1 = new WireMockServer(8088);
-        wireMockServerForExternal1.start();
+        wireMockServer = new WireMockServer(options()
+                .dynamicPort()
+                .enableBrowserProxying(true)
+        );
+        wireMockServer.start();
 
-        wireMockServerForExternal2 = new WireMockServer(8089);
-        wireMockServerForExternal2.start();
+        JvmProxyConfigurer.configureFor(wireMockServer);
 
-        WireMock.configureFor("https://jsonplaceholder.typicode.com", 8088);
-        WireMock.configureFor("https://bible-api.com", 8089);
-
-        // Configure WireMock to respond to specific API endpoints of the external services
-        wireMockServerForExternal1.stubFor(WireMock.get(WireMock.urlPathMatching("albums.*"))
+        wireMockServer.stubFor(WireMock.get(WireMock.urlPathMatching("albums.*"))
+                .withHost(WireMock.equalTo("http://jsonplaceholder.typicode.com"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(body1)));
 
-        wireMockServerForExternal2.stubFor(WireMock.get(WireMock.urlPathMatching("[a-z]*\s.*"))
+        wireMockServer.stubFor(WireMock.get(WireMock.urlPathMatching("[a-z]*\s.*"))
+                .withHost(WireMock.equalTo("https://bible-api.com"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -401,9 +404,8 @@ public class IntegrationTest {
 
     @AfterAll
     public static void tearDown() {
-        // Stop WireMock servers after all tests
-        wireMockServerForExternal1.stop();
-        wireMockServerForExternal2.stop();
+        wireMockServer.stop();
+        JvmProxyConfigurer.restorePrevious();
     }
 
     @Test

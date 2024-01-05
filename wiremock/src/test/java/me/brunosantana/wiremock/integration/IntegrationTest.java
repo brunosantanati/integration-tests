@@ -16,8 +16,38 @@ import static org.hamcrest.Matchers.is;
 //https://wiremock.org/docs/multi-domain-mocking/
 //https://nikhils-devops.medium.com/keytool-generate-cacert-server-cert-from-url-and-port-ssl-from-aws-acm-fcf722fea8fe
 
-//Link to solve the problem: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+//Links to solve the problem: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
 //https://medium.com/expedia-group-tech/how-to-import-public-certificates-into-javas-truststore-from-a-browser-a35e49a806dc
+//https://blog.packagecloud.io/solve-unable-to-find-valid-certification-path-to-requested-target/
+//https://www.baeldung.com/jvm-certificate-store-errors
+
+/*
+openssl s_client -showcerts -connect host.name.com:443 -servername host.name.com  </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > host.name.com.pem
+openssl s_client -showcerts -connect bible-api.com:443 -servername bible-api.com  </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > bible-api.com.pem
+
+openssl x509 -inform PEM -in host.name.com.pem -outform DER -out host.name.com.cer
+openssl x509 -inform PEM -in bible-api.com.pem -outform DER -out bible-api.com.cer
+
+cd /home/bruno/.jdks/corretto-17.0.5/
+keytool -importcert -alias ${cert.alias} -keystore ${keystore.file} -file ${cer.file}
+sudo keytool -import -alias testCert -keystore $JAVA_HOME/jre/lib/security/cacerts -file example.cer
+keytool -import -alias bible -keystore cacerts -file ~/IdeaProjects/integration-tests/wiremock/certificates/bible-api.com.cer
+alias - alias for the certificate so have a meaningful name
+file - exported .cer certificate from the browser
+The default password for the truststore: changeit
+
+keytool -import -alias bible1 -keystore /home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts -file ~/IdeaProjects/integration-tests/wiremock/certificates/bible-api.com.pem
+keytool -import -alias bible2 -keystore /home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts -file ~/IdeaProjects/integration-tests/wiremock/certificates/bible-api-2.pem
+keytool -import -alias bible3 -keystore /home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts -file ~/IdeaProjects/integration-tests/wiremock/certificates/bible-api-3.pem
+
+corretto-17.0.5/lib/security$ keytool -list -keystore cacerts
+keytool -keystore /home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts -list -v
+
+keytool -delete -alias ${cert.alias} -keystore ${keystore.file}
+keytool -delete -alias bible-api -keystore /home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts
+
+https://superuser.com/questions/97201/how-to-save-a-remote-server-ssl-certificate-locally-as-a-file
+ */
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class IntegrationTest {
@@ -383,7 +413,7 @@ public class IntegrationTest {
                 "  }\n" +
                 "]";
 
-        String body2 = "{\"reference\":\"John 3:16\",\"verses\":[{\"book_id\":\"JHN\",\"book_name\":\"John\",\"chapter\":3,\"verse\":16,\"text\":\"\\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\\n\\n\"}],\"text\":\"\\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\\n\\n\",\"translation_id\":\"web\",\"translation_name\":\"World English Bible\",\"translation_note\":\"Public Domain\"}";
+        String body2 = "{\"reference\":\"John 3:166\",\"verses\":[{\"book_id\":\"JHN\",\"book_name\":\"John\",\"chapter\":3,\"verse\":16,\"text\":\"\\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\\n\\n\"}],\"text\":\"\\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\\n\\n\",\"translation_id\":\"web\",\"translation_name\":\"World English Bible\",\"translation_note\":\"Public Domain\"}";
 
         wireMockServer = new WireMockServer(options()
                 .dynamicPort()
@@ -394,14 +424,14 @@ public class IntegrationTest {
         JvmProxyConfigurer.configureFor(wireMockServer);
 
         wireMockServer.stubFor(WireMock.get(WireMock.urlPathMatching("albums.*"))
-                .withHost(WireMock.equalTo("http://jsonplaceholder.typicode.com"))
+                .withHost(WireMock.equalTo("jsonplaceholder.typicode.com"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(body1)));
 
-        wireMockServer.stubFor(WireMock.get(WireMock.urlPathMatching("[a-z]*\s.*"))
-                .withHost(WireMock.equalTo("https://bible-api.com"))
+        wireMockServer.stubFor(WireMock.get(WireMock.urlPathMatching(".+\s.+"))
+                .withHost(WireMock.equalTo("bible-api.com"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")

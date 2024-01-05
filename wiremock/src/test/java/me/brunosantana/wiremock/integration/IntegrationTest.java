@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -59,6 +60,10 @@ https://superuser.com/questions/97201/how-to-save-a-remote-server-ssl-certificat
 /*
 Examples GitHub:
 https://github.com/carl-don-it/document/blob/2be445db950cb8f829646c4cca606013b3c751e9/3.%20%E4%B8%BB%E6%B5%81%E6%A1%86%E6%9E%B6/Junit/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.md?plain=1#L95
+https://github.com/uqbar-project/eg-peliculas-microservicios/blob/2c21a0b82709d8ad5dae89bff6627dba77966476/peliculas-microservice-ranking/README.md?plain=1#L142
+https://github.com/mia-platform/documentation/blob/d396b5dc3928befe8d3c49dc19aac3fbbdae3cd5/versioned_docs/version-11.x.x/getting-started/tutorials/create-a-custom-microservice.mdx#L488
+https://github.com/Xray-App/xray-maven-plugin/blob/5e55540351a70f9f4fddd0e6148a9765603f7ca5/src/test/java/app/getxray/xray/it/import_results/XrayCloudIT.java#L56
+https://github.com/i-novus-llc/n2o-framework/blob/70a74bf2bb325a13ee7258bab74918cbcff3e0ca/backend/n2o/n2o-sandbox/src/test/java/net/n2oapp/framework/sandbox/service/SandboxExportTest.java#L93
  */
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -434,24 +439,29 @@ public class IntegrationTest {
 
         wireMockServer = new WireMockServer(options()
                 .enableBrowserProxying(true)
-                .dynamicPort()
-                .dynamicHttpsPort()
+                //.dynamicPort()
+                //.dynamicHttpsPort()
+                .httpsPort(443)
                 .trustAllProxyTargets(true)
         );
         wireMockServer.start();
 
         JvmProxyConfigurer.configureFor(wireMockServer);
 
-        wireMockServer.stubFor(WireMock.get("/albums/1/photos")
-                .withHost(WireMock.equalTo("https://jsonplaceholder.typicode.com"))
-                .willReturn(WireMock.aResponse()
+        wireMockServer.stubFor(get("/albums/1/photos")
+                //.withScheme("https")
+                .withHost(WireMock.equalTo("jsonplaceholder.typicode.com"))
+                .withPort(443)
+                .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(body1)));
 
-        wireMockServer.stubFor(WireMock.get(WireMock.urlPathMatching(".+\s.+"))
-                .withHost(WireMock.equalTo("https://bible-api.com"))
-                .willReturn(WireMock.aResponse()
+        wireMockServer.stubFor(get(urlPathMatching(".+\s.+"))
+                //.withScheme("https")
+                .withHost(WireMock.equalTo("bible-api.com"))
+                .withPort(443)
+                .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(body2)));

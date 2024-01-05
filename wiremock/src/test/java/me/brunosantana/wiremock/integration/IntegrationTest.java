@@ -101,7 +101,6 @@ public class IntegrationTest {
         String body1 = fileReaderUtil.read("jsonplaceholder-response.json");
         String body2 = fileReaderUtil.read("bible-response.json");
 
-        //.httpsPort(443)
         WireMockServer wireMockServer = new WireMockServer(options()
                 .enableBrowserProxying(true)
                 .dynamicPort()

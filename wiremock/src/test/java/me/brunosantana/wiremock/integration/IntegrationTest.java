@@ -23,7 +23,10 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+//StackOverflow
 //https://stackoverflow.com/questions/77762851/getting-unable-to-find-valid-certification-path-to-requested-target-in-the-int
+//https://stackoverflow.com/questions/6908948/java-sun-security-provider-certpath-suncertpathbuilderexception-unable-to-find
+
 //https://wiremock.org/docs/multi-domain-mocking/
 //https://nikhils-devops.medium.com/keytool-generate-cacert-server-cert-from-url-and-port-ssl-from-aws-acm-fcf722fea8fe
 
@@ -33,6 +36,9 @@ import static org.hamcrest.Matchers.is;
 //https://www.baeldung.com/jvm-certificate-store-errors
 
 /*
+VM options to debug:
+-Djavax.net.debug=SSL
+
 openssl s_client -showcerts -connect host.name.com:443 -servername host.name.com  </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > host.name.com.pem
 openssl s_client -showcerts -connect bible-api.com:443 -servername bible-api.com  </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > bible-api.com.pem
 

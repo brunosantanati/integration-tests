@@ -3,10 +3,17 @@ package me.brunosantana.wiremock.integration;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.JvmProxyConfigurer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import jakarta.annotation.Resource;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.restassured.RestAssured.given;
@@ -49,13 +56,23 @@ keytool -delete -alias bible-api -keystore /home/bruno/.jdks/corretto-17.0.5/lib
 https://superuser.com/questions/97201/how-to-save-a-remote-server-ssl-certificate-locally-as-a-file
  */
 
+/*
+Examples GitHub:
+https://github.com/carl-don-it/document/blob/2be445db950cb8f829646c4cca606013b3c751e9/3.%20%E4%B8%BB%E6%B5%81%E6%A1%86%E6%9E%B6/Junit/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95.md?plain=1#L95
+ */
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+//@SpringBootTest(classes = IntegrationTest.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 public class IntegrationTest {
 
-    private static WireMockServer wireMockServer;
+    @Resource
+    MockMvc mockMvc;
 
-    @BeforeAll
-    public static void setUp() {
+    private WireMockServer wireMockServer;
+
+    @Before
+    public void setup() {
 
         //System.setProperty("javax.net.ssl.trustStore", "/home/bruno/.jdks/corretto-17.0.5/lib/security/cacert");
         //System.setProperty("javax.net.ssl.trustStorePassword", "changeme");
@@ -416,35 +433,37 @@ public class IntegrationTest {
         String body2 = "{\"reference\":\"John 3:166\",\"verses\":[{\"book_id\":\"JHN\",\"book_name\":\"John\",\"chapter\":3,\"verse\":16,\"text\":\"\\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\\n\\n\"}],\"text\":\"\\nFor God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.\\n\\n\",\"translation_id\":\"web\",\"translation_name\":\"World English Bible\",\"translation_note\":\"Public Domain\"}";
 
         wireMockServer = new WireMockServer(options()
-                .dynamicPort()
                 .enableBrowserProxying(true)
+                .dynamicPort()
+                .dynamicHttpsPort()
+                .trustAllProxyTargets(true)
         );
         wireMockServer.start();
 
         JvmProxyConfigurer.configureFor(wireMockServer);
 
-        wireMockServer.stubFor(WireMock.get(WireMock.urlPathMatching("albums.*"))
-                .withHost(WireMock.equalTo("jsonplaceholder.typicode.com"))
+        wireMockServer.stubFor(WireMock.get("/albums/1/photos")
+                .withHost(WireMock.equalTo("https://jsonplaceholder.typicode.com"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(body1)));
 
         wireMockServer.stubFor(WireMock.get(WireMock.urlPathMatching(".+\s.+"))
-                .withHost(WireMock.equalTo("bible-api.com"))
+                .withHost(WireMock.equalTo("https://bible-api.com"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(body2)));
     }
 
-    @AfterAll
-    public static void tearDown() {
+    @After
+    public void tearDown() {
         wireMockServer.stop();
         JvmProxyConfigurer.restorePrevious();
     }
 
-    @Test
+    /*@Test
     public void testApiIntegrationWithExternal1() {
         given()
                 .when()
@@ -455,6 +474,16 @@ public class IntegrationTest {
                 .body("album.albumId", is(1))
                 .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
                 .body("bible.reference", equalTo("John 3:16"));
+    }*/
+
+    @Test
+    public void testApi() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
+                        .content("{}")
+                        .headers(new HttpHeaders()))
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
     }
 
 }

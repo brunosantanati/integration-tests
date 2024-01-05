@@ -23,6 +23,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+//https://stackoverflow.com/questions/77762851/getting-unable-to-find-valid-certification-path-to-requested-target-in-the-int
 //https://wiremock.org/docs/multi-domain-mocking/
 //https://nikhils-devops.medium.com/keytool-generate-cacert-server-cert-from-url-and-port-ssl-from-aws-acm-fcf722fea8fe
 
@@ -82,7 +83,7 @@ public class IntegrationTest {
     MockMvc mockMvc;
 
     /*@Test
-    public void testApiIntegrationWithExternal1() {
+    public void testApiIntegrationTest() {
         given()
                 .when()
                 .get("http://localhost:8080/albums/1/bible/john/3/16")

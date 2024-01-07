@@ -1,2 +1,0 @@
-~/IdeaProjects/integration-tests/wiremock/SSLPoke$ ~/.jdks/corretto-17.0.5/bin/java SSLPoke jsonplaceholder.typicode.com 443
-Successfully connected

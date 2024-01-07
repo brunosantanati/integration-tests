@@ -10,6 +10,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,11 +29,13 @@ import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("profile2")
 public class SecondIntegrationTest {
 
+    @LocalServerPort
+    private int randomServerPort;
     @Resource
     MockMvc mockMvc;
 
@@ -91,7 +94,7 @@ public class SecondIntegrationTest {
     public void testAlbumBibleEndpointUsingRestAssured() {
         given()
         .when()
-            .get("http://localhost:8080/albums/1/bible/john/3/16")
+            .get(String.format("http://localhost:%s/albums/1/bible/john/3/16", randomServerPort))
         .then()
             .log().all()
             .statusCode(200)
@@ -102,7 +105,7 @@ public class SecondIntegrationTest {
 
     @Test
     public void testAlbumBibleEndpointUsingMockMvc() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
+        mockMvc.perform(MockMvcRequestBuilders.get("/albums/1/bible/john/3/16")
                         .content("{}")
                         .headers(new HttpHeaders()))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())

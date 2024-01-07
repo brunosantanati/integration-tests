@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 //https://wiremock.org/docs/multi-domain-mocking/
+//https://stackoverflow.com/questions/77774752/multi-domain-mocking-with-wiremock-is-not-working
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc

@@ -5,6 +5,8 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.JvmProxyConfigurer;
 import jakarta.annotation.Resource;
 import me.brunosantana.wiremock.util.FileReaderUtil;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -90,28 +92,15 @@ public class IntegrationTest {
     @Resource
     MockMvc mockMvc;
 
-    /*@Test
-    public void testApiIntegrationTest() {
-        given()
-                .when()
-                .get("http://localhost:8080/albums/1/bible/john/3/16")
-                .then()
-                .log().all()
-                .statusCode(200)
-                .body("album.albumId", is(1))
-                .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
-                .body("bible.reference", equalTo("John 3:16"));
-    }*/
+    WireMockServer wireMockServer;
 
-    @Test
-    public void testApi() throws Exception {
-        //SETUP
-
+    @BeforeEach
+    public void startServer() throws IOException, URISyntaxException {
         FileReaderUtil fileReaderUtil = new FileReaderUtil();
         String body1 = fileReaderUtil.read("jsonplaceholder-response.json");
         String body2 = fileReaderUtil.read("bible-response.json");
 
-        WireMockServer wireMockServer = new WireMockServer(options()
+        wireMockServer = new WireMockServer(options()
                 .dynamicPort()
                 .enableBrowserProxying(true)
                 //.dynamicHttpsPort()
@@ -137,16 +126,37 @@ public class IntegrationTest {
                         .withBody(body1)));
 
         wireMockServer.stubFor(get(urlPathMatching("/[a-z]+\\s[0-9]+:[0-9]+"))
-        //wireMockServer.stubFor(get("/john 3:16")
+                //wireMockServer.stubFor(get("/john 3:16")
                 //.withScheme("https")
-                .withHost(WireMock.equalTo("bible.api.com"))
+                .withHost(WireMock.equalTo("my.random.site.com"))
                 //.withPort(443)
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json; charset=utf-8")
                         .withBody(body2)));
+    }
 
-        //TEST
+    @AfterEach
+    public void stopServer() {
+        wireMockServer.stop();
+        JvmProxyConfigurer.restorePrevious();
+    }
+
+    @Test
+    public void testApiIntegrationTest() {
+        given()
+                .when()
+                .get("http://localhost:8080/albums/1/bible/john/3/16")
+                .then()
+                .log().all()
+                .statusCode(200)
+                .body("album.albumId", is(1))
+                .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
+                .body("bible.reference", equalTo("John 3:16"));
+    }
+
+    /*@Test
+    public void testApi() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
                         //.content("{}")
                         .header("Accept", "application/json")
@@ -154,10 +164,6 @@ public class IntegrationTest {
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-
-        //TEAR DOWN
-        wireMockServer.stop();
-        JvmProxyConfigurer.restorePrevious();
-    }
+    }*/
 
 }

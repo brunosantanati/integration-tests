@@ -29,7 +29,7 @@ class BibleService {
 
   public BibleResponse getVerse(String book, String chapter, String verse) throws UnsupportedEncodingException {
     String url = String.format("%s/%s %s:%s", baseUrl, book, chapter, verse);
-    restTemplate.getInterceptors().add(new LoggingInterceptor());
+    //restTemplate.getInterceptors().add(new LoggingInterceptor());
     ResponseEntity<BibleResponse> response =
         restTemplate.exchange(
             url, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});

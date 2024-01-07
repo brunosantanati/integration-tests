@@ -83,8 +83,8 @@ public class IntegrationTest {
             .log().all()
             .statusCode(200)
             .body("album.albumId", is(1))
-            .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
-            .body("bible.reference", equalTo("John 3:16"));
+            .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt mock"))
+            .body("bible.reference", equalTo("John 3:16 mock"));
     }
 
     /*@Test
@@ -94,6 +94,8 @@ public class IntegrationTest {
                         .header("Accept", "application/json")
                         .headers(new HttpHeaders()))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.album.photos[0].title").value("accusamus beatae ad facilis cum similique qui sunt mock"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.bible.reference").value("John 3:16 mock"))
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
     }*/

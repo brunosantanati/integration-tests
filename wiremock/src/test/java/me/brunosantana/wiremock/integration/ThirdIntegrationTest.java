@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,10 +25,13 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("profile3")
 public class ThirdIntegrationTest {
+
+    @LocalServerPort
+    private int randomServerPort;
 
     @Resource
     MockMvc mockMvc;
@@ -68,7 +72,7 @@ public class ThirdIntegrationTest {
     public void testAlbumBibleEndpointUsingRestAssured() {
         given()
         .when()
-            .get("http://localhost:8080/albums/1/bible/john/3/16")
+            .get(String.format("http://localhost:%s/albums/1/bible/john/3/16", randomServerPort))
         .then()
             .log().all()
             .statusCode(200)
@@ -79,7 +83,7 @@ public class ThirdIntegrationTest {
 
     @Test
     public void testAlbumBibleEndpointUsingMockMvc() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
+        mockMvc.perform(MockMvcRequestBuilders.get("/albums/1/bible/john/3/16")
                         //.content("{}")
                         .header("Accept", "application/json")
                         .headers(new HttpHeaders()))

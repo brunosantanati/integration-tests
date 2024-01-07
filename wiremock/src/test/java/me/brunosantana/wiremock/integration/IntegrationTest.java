@@ -121,7 +121,7 @@ public class IntegrationTest {
                 //.keystorePassword("changeit")
                 //.keyManagerPassword("changeit")
                 //.httpsPort(443)
-                //.trustAllProxyTargets(true)
+                .trustAllProxyTargets(true)
         );
         wireMockServer.start();
 
@@ -136,10 +136,10 @@ public class IntegrationTest {
                         .withHeader("Content-Type", "application/json; charset=utf-8")
                         .withBody(body1)));
 
-        //wireMockServer.stubFor(get(urlPathMatching("/[a-z]+\\s[0-9]+:[0-9]+"))
-        wireMockServer.stubFor(get("/john 3:16")
+        wireMockServer.stubFor(get(urlPathMatching("/[a-z]+\\s[0-9]+:[0-9]+"))
+        //wireMockServer.stubFor(get("/john 3:16")
                 //.withScheme("https")
-                .withHost(WireMock.equalTo("bible-api.com"))
+                .withHost(WireMock.equalTo("bible.api.com"))
                 //.withPort(443)
                 .willReturn(aResponse()
                         .withStatus(200)

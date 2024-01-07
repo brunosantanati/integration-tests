@@ -54,19 +54,14 @@ public class IntegrationTest {
         JvmProxyConfigurer.configureFor(wireMockServer);
 
         wireMockServer.stubFor(get(urlPathMatching("/albums/[0-9]+/photos"))
-                //.withScheme("https")
                 .withHost(WireMock.equalTo("jsonplaceholder.typicode.com"))
-                //.withPort(443)
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json; charset=utf-8")
                         .withBody(body1)));
 
         wireMockServer.stubFor(get(urlPathMatching("/[a-z]+\\s[0-9]+:[0-9]+"))
-                //wireMockServer.stubFor(get("/john 3:16")
-                //.withScheme("https")
                 .withHost(WireMock.equalTo("my.random.site.com"))
-                //.withPort(443)
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json; charset=utf-8")

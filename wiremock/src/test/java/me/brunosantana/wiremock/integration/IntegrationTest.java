@@ -26,6 +26,8 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+//https://wiremock.org/docs/multi-domain-mocking/
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("profile1")
@@ -78,20 +80,20 @@ public class IntegrationTest {
     }
 
     @Test
-    public void testApiIntegrationTest() {
+    public void testAlbumBibleEndpointUsingRestAssured() {
         given()
-                .when()
-                .get("http://localhost:8080/albums/1/bible/john/3/16")
-                .then()
-                .log().all()
-                .statusCode(200)
-                .body("album.albumId", is(1))
-                .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
-                .body("bible.reference", equalTo("John 3:16"));
+        .when()
+            .get("http://localhost:8080/albums/1/bible/john/3/16")
+        .then()
+            .log().all()
+            .statusCode(200)
+            .body("album.albumId", is(1))
+            .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
+            .body("bible.reference", equalTo("John 3:16"));
     }
 
     /*@Test
-    public void testApi() throws Exception {
+    public void testAlbumBibleEndpointUsingMockMvc() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
                         //.content("{}")
                         .header("Accept", "application/json")

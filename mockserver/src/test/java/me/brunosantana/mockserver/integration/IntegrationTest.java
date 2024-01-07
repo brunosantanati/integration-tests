@@ -50,7 +50,7 @@ public class IntegrationTest {
                 .when(
                         request()
                                 .withMethod("GET")
-                                .withPath("/albums/1/photos"),
+                                .withPath("/albums/[0-9]+/photos"),
                         exactly(1)
                 )
                 .respond(
@@ -67,7 +67,7 @@ public class IntegrationTest {
                 .when(
                         request()
                                 .withMethod("GET")
-                                .withPath("/john 3:16"),
+                                .withPath("/[a-z]+\\s[0-9]+:[0-9]+"),
                         exactly(1)
                 )
                 .respond(

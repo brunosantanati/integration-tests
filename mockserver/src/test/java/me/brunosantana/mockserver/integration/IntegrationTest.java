@@ -10,6 +10,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,11 +32,16 @@ import static org.mockserver.model.HttpResponse.response;
 //https://www.baeldung.com/mockserver
 //https://github.com/eugenp/tutorials/blob/master/testing-modules/mockserver/src/test/java/com/baeldung/mock/server/MockServerLiveTest.java
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+//Look at this later: @SpringBootTest(properties =...
+//https://github.com/hmcts/camunda-bpm/blob/400ffe303ddf005985d98900e36a05cddf7ff3a3/src/testUtils/java/uk/gov/hmcts/reform/camunda/bpm/SpringBootIntegrationBaseTest.java#L18
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("profile1")
 public class IntegrationTest {
 
+    @LocalServerPort
+    private int randomServerPort;
     @Resource
     MockMvc mockMvc;
 
@@ -96,7 +102,7 @@ public class IntegrationTest {
     public void testAlbumBibleEndpointUsingRestAssured() {
         given()
         .when()
-            .get("http://localhost:8080/albums/1/bible/john/3/16")
+            .get(String.format("http://localhost:%s/albums/1/bible/john/3/16", randomServerPort))
         .then()
             .log().all()
             .statusCode(200)
@@ -107,8 +113,7 @@ public class IntegrationTest {
 
     @Test
     public void testAlbumBibleEndpointUsingMockMvc() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
-                        .content("{}")
+        mockMvc.perform(MockMvcRequestBuilders.get("/albums/1/bible/john/3/16")
                         .headers(new HttpHeaders()))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.album.photos[0].title").value("accusamus beatae ad facilis cum similique qui sunt mock"))

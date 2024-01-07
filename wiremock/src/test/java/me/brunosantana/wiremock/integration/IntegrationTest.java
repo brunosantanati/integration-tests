@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 //StackOverflow
 //https://stackoverflow.com/questions/77762851/getting-unable-to-find-valid-certification-path-to-requested-target-in-the-int
 //https://stackoverflow.com/questions/6908948/java-sun-security-provider-certpath-suncertpathbuilderexception-unable-to-find
+//https://stackoverflow.com/questions/36965751/make-wiremock-accept-any-certificate
 
 //https://wiremock.org/docs/multi-domain-mocking/
 //https://nikhils-devops.medium.com/keytool-generate-cacert-server-cert-from-url-and-port-ssl-from-aws-acm-fcf722fea8fe
@@ -104,6 +105,8 @@ public class IntegrationTest {
     @Test
     public void testApi() throws Exception {
         //SETUP
+        System.setProperty("https.protocols", "TLSv1.2,TLSv1.1,SSLv3");
+
         FileReaderUtil fileReaderUtil = new FileReaderUtil();
         String body1 = fileReaderUtil.read("jsonplaceholder-response.json");
         String body2 = fileReaderUtil.read("bible-response.json");
@@ -112,6 +115,8 @@ public class IntegrationTest {
                 .enableBrowserProxying(true)
                 .dynamicPort()
                 .dynamicHttpsPort()
+                .keystorePath("/home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts")
+                .keystorePassword("changeit")
                 //.httpsPort(443)
                 .trustAllProxyTargets(true)
         );

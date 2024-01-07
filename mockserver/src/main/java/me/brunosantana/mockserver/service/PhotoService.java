@@ -15,18 +15,15 @@ import java.util.List;
 public
 class PhotoService {
   private final String baseUrl;
-
-  private final String port;
   private final RestTemplate restTemplate;
 
-  PhotoService(@Value("${photos.api.base-url}") String baseUrl, @Value("${photos.api.port}") String port, RestTemplateBuilder builder) {
+  PhotoService(@Value("${photos.api.base-url}") String baseUrl, RestTemplateBuilder builder) {
     this.baseUrl = baseUrl;
-    this.port = port;
     this.restTemplate = builder.build();
   }
 
   public List<Photo> getPhotos(Long albumId) {
-    String url = baseUrl + ":" + port + "/albums/{albumId}/photos";
+    String url = baseUrl + "/albums/{albumId}/photos";
     ResponseEntity<List<Photo>> response =
         restTemplate.exchange(
             url, HttpMethod.GET, null, new ParameterizedTypeReference<>() {}, albumId);

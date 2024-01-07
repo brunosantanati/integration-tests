@@ -15,17 +15,15 @@ import java.io.UnsupportedEncodingException;
 public
 class BibleService {
   private final String baseUrl;
-  private final String port;
   private final RestTemplate restTemplate;
 
-  BibleService(@Value("${bible.api.base-url}") String baseUrl, @Value("${bible.api.port}") String port, RestTemplateBuilder builder) {
+  BibleService(@Value("${bible.api.base-url}") String baseUrl, RestTemplateBuilder builder) {
     this.baseUrl = baseUrl;
-    this.port = port;
     this.restTemplate = builder.build();
   }
 
   public BibleResponse getVerse(String book, String chapter, String verse) throws UnsupportedEncodingException {
-    String url = String.format("%s:%s/%s %s:%s", baseUrl, port, book, chapter, verse);
+    String url = String.format("%s/%s %s:%s", baseUrl, book, chapter, verse);
     ResponseEntity<BibleResponse> response =
         restTemplate.exchange(
             url, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});

@@ -28,31 +28,27 @@ import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-//https://www.baeldung.com/mockserver
-//https://github.com/eugenp/tutorials/blob/master/testing-modules/mockserver/src/test/java/com/baeldung/mock/server/MockServerLiveTest.java
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
-@ActiveProfiles("profile1")
-public class IntegrationTest {
+@ActiveProfiles("profile2")
+public class SecondIntegrationTest {
 
     @Resource
     MockMvc mockMvc;
 
     private ClientAndServer mockServer;
-    private ClientAndServer mockServer2;
 
     @BeforeEach
     public void startServer() throws IOException, URISyntaxException {
         mockServer = startClientAndServer(1080);
-        mockServer2 = startClientAndServer(1081);
 
         FileReaderUtil fileReaderUtil = new FileReaderUtil();
         String body = fileReaderUtil.read("jsonplaceholder-response.json");
         String body2 = fileReaderUtil.read("bible-response.json");
 
-        new MockServerClient("127.0.0.1", 1080)
-                .when(
+        // If the URL paths don't overlap, I am able to use only one MockServerClient
+        MockServerClient mockServerClient = new MockServerClient("127.0.0.1", 1080);
+        mockServerClient.when(
                         request()
                                 .withMethod("GET")
                                 .withPath("/albums/[0-9]+/photos"),
@@ -68,11 +64,11 @@ public class IntegrationTest {
                                 .withBody(body)
                 );
 
-        new MockServerClient("127.0.0.1", 1081)
-                .when(
+        mockServerClient.when(
                         request()
                                 .withMethod("GET")
-                                .withPath("/[a-z]+\\s[0-9]+:[0-9]+"),
+                                //.withPath("/[a-z]+\\s[0-9]+:[0-9]+"),
+                                .withPath("/[a-z]+.+:.+"),
                         exactly(1)
                 )
                 .respond(
@@ -89,7 +85,6 @@ public class IntegrationTest {
     @AfterEach
     public void stopServer() {
         mockServer.stop();
-        mockServer2.stop();
     }
 
     @Test

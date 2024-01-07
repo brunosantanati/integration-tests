@@ -87,10 +87,9 @@ public class IntegrationTest {
             .body("bible.reference", equalTo("John 3:16 mock"));
     }
 
-    /*@Test
+    @Test
     public void testAlbumBibleEndpointUsingMockMvc() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
-                        //.content("{}")
                         .header("Accept", "application/json")
                         .headers(new HttpHeaders()))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
@@ -98,6 +97,6 @@ public class IntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.bible.reference").value("John 3:16 mock"))
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-    }*/
+    }
 
 }

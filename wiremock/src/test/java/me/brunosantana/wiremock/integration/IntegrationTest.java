@@ -106,49 +106,50 @@ public class IntegrationTest {
     @Test
     public void testApi() throws Exception {
         //SETUP
-        System.setProperty("https.protocols", "TLSv1.2,TLSv1.1,SSLv3");
 
         FileReaderUtil fileReaderUtil = new FileReaderUtil();
         String body1 = fileReaderUtil.read("jsonplaceholder-response.json");
         String body2 = fileReaderUtil.read("bible-response.json");
 
         WireMockServer wireMockServer = new WireMockServer(options()
-                .enableBrowserProxying(true)
                 .dynamicPort()
-                .dynamicHttpsPort()
-                .trustStorePath("/home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts")
-                .trustStorePassword("changeit")
+                .enableBrowserProxying(true)
+                //.dynamicHttpsPort()
+                //.trustStorePath("/home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts")
+                //.trustStorePassword("changeit")
                 //.keystorePath("/home/bruno/.jdks/corretto-17.0.5/lib/security/cacerts")
                 //.keystorePassword("changeit")
                 //.keyManagerPassword("changeit")
                 //.httpsPort(443)
-                .trustAllProxyTargets(true)
+                //.trustAllProxyTargets(true)
         );
         wireMockServer.start();
 
         JvmProxyConfigurer.configureFor(wireMockServer);
 
-        wireMockServer.stubFor(get("/albums/1/photos")
+        wireMockServer.stubFor(get(urlPathMatching("/albums/[0-9]+/photos"))
                 //.withScheme("https")
                 .withHost(WireMock.equalTo("jsonplaceholder.typicode.com"))
-                .withPort(443)
+                //.withPort(443)
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader("Content-Type", "application/json; charset=utf-8")
                         .withBody(body1)));
 
-        wireMockServer.stubFor(get(urlPathMatching(".+\s.+"))
+        //wireMockServer.stubFor(get(urlPathMatching("/[a-z]+\\s[0-9]+:[0-9]+"))
+        wireMockServer.stubFor(get("/john 3:16")
                 //.withScheme("https")
                 .withHost(WireMock.equalTo("bible-api.com"))
-                .withPort(443)
+                //.withPort(443)
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader("Content-Type", "application/json; charset=utf-8")
                         .withBody(body2)));
 
         //TEST
         mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
-                        .content("{}")
+                        //.content("{}")
+                        .header("Accept", "application/json")
                         .headers(new HttpHeaders()))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
                 .andDo(MockMvcResultHandlers.print())

@@ -1,5 +1,6 @@
 package me.brunosantana.wiremock.service;
 
+import me.brunosantana.wiremock.interceptor.LoggingInterceptor;
 import me.brunosantana.wiremock.model.BibleResponse;
 import me.brunosantana.wiremock.model.Photo;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,7 @@ class BibleService {
 
   public BibleResponse getVerse(String book, String chapter, String verse) throws UnsupportedEncodingException {
     String url = String.format("%s/%s %s:%s", baseUrl, book, chapter, verse);
+    restTemplate.getInterceptors().add(new LoggingInterceptor());
     ResponseEntity<BibleResponse> response =
         restTemplate.exchange(
             url, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});

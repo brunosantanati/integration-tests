@@ -10,12 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -28,13 +24,14 @@ import static org.hamcrest.Matchers.is;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
-@ActiveProfiles("profile1")
-public class IntegrationTest {
+@ActiveProfiles("profile2")
+public class AnotherIntegrationTest {
 
     @Resource
     MockMvc mockMvc;
 
     WireMockServer wireMockServer;
+    WireMockServer wireMockServer2;
 
     @BeforeEach
     public void startServer() throws IOException, URISyntaxException {
@@ -42,29 +39,22 @@ public class IntegrationTest {
         String body1 = fileReaderUtil.read("jsonplaceholder-response.json");
         String body2 = fileReaderUtil.read("bible-response.json");
 
-        wireMockServer = new WireMockServer(options()
-                .dynamicPort()
-                .enableBrowserProxying(true)
-                .trustAllProxyTargets(true)
-        );
+        wireMockServer = new WireMockServer(1080);
         wireMockServer.start();
 
-        JvmProxyConfigurer.configureFor(wireMockServer);
+        wireMockServer2 = new WireMockServer(1081);
+        wireMockServer2.start();
+
+        WireMock.configureFor("127.0.0.1", 1080);
+        WireMock.configureFor("127.0.0.1", 1081);
 
         wireMockServer.stubFor(get(urlPathMatching("/albums/[0-9]+/photos"))
-                //.withScheme("https")
-                .withHost(WireMock.equalTo("jsonplaceholder.typicode.com"))
-                //.withPort(443)
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json; charset=utf-8")
                         .withBody(body1)));
 
-        wireMockServer.stubFor(get(urlPathMatching("/[a-z]+\\s[0-9]+:[0-9]+"))
-                //wireMockServer.stubFor(get("/john 3:16")
-                //.withScheme("https")
-                .withHost(WireMock.equalTo("my.random.site.com"))
-                //.withPort(443)
+        wireMockServer2.stubFor(get(urlPathMatching("/[a-z]+\\s[0-9]+:[0-9]+"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json; charset=utf-8")
@@ -78,20 +68,20 @@ public class IntegrationTest {
     }
 
     @Test
-    public void testApiIntegrationTest() {
+    public void testAlbumBibleEndpointUsingRestAssured() {
         given()
-                .when()
-                .get("http://localhost:8080/albums/1/bible/john/3/16")
-                .then()
-                .log().all()
-                .statusCode(200)
-                .body("album.albumId", is(1))
-                .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
-                .body("bible.reference", equalTo("John 3:16"));
+        .when()
+            .get("http://localhost:8080/albums/1/bible/john/3/16")
+        .then()
+            .log().all()
+            .statusCode(200)
+            .body("album.albumId", is(1))
+            .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt"))
+            .body("bible.reference", equalTo("John 3:16"));
     }
 
     /*@Test
-    public void testApi() throws Exception {
+    public void testAlbumBibleEndpointUsingMockMvc() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
                         //.content("{}")
                         .header("Accept", "application/json")

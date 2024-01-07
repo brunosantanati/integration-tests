@@ -19,6 +19,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpRequest.request;
@@ -88,7 +91,20 @@ public class IntegrationTest {
     }
 
     @Test
-    public void testAlbumBibleEndpoint() throws Exception {
+    public void testAlbumBibleEndpointUsingRestAssured() {
+        given()
+        .when()
+            .get("http://localhost:8080/albums/1/bible/john/3/16")
+        .then()
+            .log().all()
+            .statusCode(200)
+            .body("album.albumId", is(1))
+            .body("album.photos[0].title", equalTo("accusamus beatae ad facilis cum similique qui sunt mock"))
+            .body("bible.reference", equalTo("John 3:16 mock"));
+    }
+
+    @Test
+    public void testAlbumBibleEndpointUsingMockMvc() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("http://localhost:8080/albums/1/bible/john/3/16")
                         .content("{}")
                         .headers(new HttpHeaders()))

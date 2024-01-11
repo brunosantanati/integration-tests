@@ -2,7 +2,6 @@ package me.brunosantana.wiremock.integration;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.http.JvmProxyConfigurer;
 import me.brunosantana.wiremock.util.FileReaderUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,21 +18,19 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
-//https://wiremock.org/docs/multi-domain-mocking/
-//https://stackoverflow.com/questions/77774752/multi-domain-mocking-with-wiremock-is-not-working
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@ActiveProfiles("profile1")
-public class IntegrationTest {
+@ActiveProfiles("profile3")
+public class FourthdIntegrationTest {
 
     @LocalServerPort
     private int randomServerPort;
@@ -49,24 +46,25 @@ public class IntegrationTest {
         String body1 = fileReaderUtil.read("jsonplaceholder-response.json");
         String body2 = fileReaderUtil.read("bible-response.json");
 
-        wireMockServer = new WireMockServer(options()
-                .dynamicPort()
-                .enableBrowserProxying(true)
-                .trustAllProxyTargets(true)
-        );
+        wireMockServer = new WireMockServer(1080);
         wireMockServer.start();
 
-        JvmProxyConfigurer.configureFor(wireMockServer);
+        WireMock.configureFor("127.0.0.1", 1080);
 
-        wireMockServer.stubFor(get(urlPathMatching("/albums/[0-9]+/photos"))
-                .withHost(WireMock.equalTo("jsonplaceholder.typicode.com"))
+        // If the URL paths don't overlap, I am able to use only one wireMockServer
+        wireMockServer.stubFor(get(urlPathMatching("/albums/1/photos?test=1"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json; charset=utf-8")
                         .withBody(body1)));
 
-        wireMockServer.stubFor(get(urlPathMatching("/[a-z]+\\s[0-9]+:[0-9]+"))
-                .withHost(WireMock.equalTo("my.random.site.com"))
+        wireMockServer.stubFor(get(urlPathMatching("/albums/1/photos?test=2"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json; charset=utf-8")
+                        .withBody(body1)));
+
+        wireMockServer.stubFor(get(urlPathMatching("/[a-z]+.+:.+"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json; charset=utf-8")
@@ -76,7 +74,6 @@ public class IntegrationTest {
     @AfterEach
     public void stopServer() {
         wireMockServer.stop();
-        JvmProxyConfigurer.restorePrevious();
     }
 
     @Test
@@ -94,7 +91,15 @@ public class IntegrationTest {
 
     @Test
     public void testAlbumBibleEndpointUsingMockMvc() throws Exception {
+
+        Class<?> classOfMap = System.getenv().getClass();
+        Field field = classOfMap.getDeclaredField("m");
+        field.setAccessible(true);
+        Map<String, String> writeableEnvironmentVariables = (Map<String, String>)field.get(System.getenv());
+        writeableEnvironmentVariables.put("PHOTOS_API", "http://127.0.0.1:1080/albums/{albumId}/photos?test=1");
+
         mockMvc.perform(MockMvcRequestBuilders.get("/albums/1/bible/john/3/16")
+                        //.content("{}")
                         .header("Accept", "application/json")
                         .headers(new HttpHeaders()))
                 .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())

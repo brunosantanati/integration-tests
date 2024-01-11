@@ -1,6 +1,5 @@
 package me.brunosantana.wiremock.service;
 
-import me.brunosantana.wiremock.interceptor.LoggingInterceptor;
 import me.brunosantana.wiremock.model.Photo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -24,11 +23,9 @@ class PhotoService {
   }
 
   public List<Photo> getPhotos(Long albumId) {
-    String url = baseUrl + "/albums/{albumId}/photos";
-    //restTemplate.getInterceptors().add(new LoggingInterceptor());
     ResponseEntity<List<Photo>> response =
         restTemplate.exchange(
-            url, HttpMethod.GET, null, new ParameterizedTypeReference<>() {}, albumId);
+            baseUrl, HttpMethod.GET, null, new ParameterizedTypeReference<>() {}, albumId);
     return response.getBody();
   }
 }

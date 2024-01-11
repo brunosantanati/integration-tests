@@ -41,7 +41,7 @@ class MyController {
       return ResponseEntity.ok(new Response(new Album(albumId, photos), bible));
     } catch (RestClientResponseException e) {
       logger.error("Failed to get info", e);
-      return new ResponseEntity<>(e.getStatusCode());
+      return ResponseEntity.internalServerError().body(new Response());
     }
   }
 }
